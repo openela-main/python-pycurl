@@ -1,0 +1,32 @@
+From f5141d34f54ec2ae3309324a99f0f5887f0a8201 Mon Sep 17 00:00:00 2001
+From: Dmitriy Taychenachev <dmitriy.taychenachev@skypicker.com>
+Date: Tue, 9 Apr 2019 11:23:58 +0200
+Subject: [PATCH] decode_string_list: fix populating list of decoded strings
+
+Under Python3 the call curl.getinfo(pycurl.INFO_COOKIELIST) returns
+invalid list (for example [<NULL>]), which cases segmentation fault.
+The cause is in function decode_string_list() (Python3 only) which
+creates new list without populating it with elements. This commit
+adds the setting of elements fixing the behaviour.
+
+Upstream-commit: 5df7a0e5bb38a3db5f04721add571cd32c5e3eb8
+Signed-off-by: Kamil Dudka <kdudka@redhat.com>
+---
+ src/easyinfo.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/easyinfo.c b/src/easyinfo.c
+index b3d731b..3712646 100644
+--- a/src/easyinfo.c
++++ b/src/easyinfo.c
+@@ -277,6 +277,7 @@ decode_string_list(PyObject *list)
+         if (decoded_item == NULL) {
+             goto err;
+         }
++	PyList_SetItem(decoded_list, i, decoded_item);
+     }
+     
+     return decoded_list;
+-- 
+2.21.1
+
